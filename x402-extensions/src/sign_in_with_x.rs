@@ -141,18 +141,13 @@ mod tests {
             .issued_at("2024-01-15T10:30:00.000Z")
             .expiration_time("2024-01-15T10:35:00.000Z")
             .statement("Sign in to access premium data")
-            .resources(vec![
-                "https://api.example.com/premium-data".to_string(),
-            ])
+            .resources(vec!["https://api.example.com/premium-data".to_string()])
             .build();
 
         let (_, ext) = Extension::typed(info).into_pair();
 
         assert_eq!(ext.info["statement"], "Sign in to access premium data");
-        assert_eq!(
-            ext.info["expirationTime"],
-            "2024-01-15T10:35:00.000Z"
-        );
+        assert_eq!(ext.info["expirationTime"], "2024-01-15T10:35:00.000Z");
         assert!(ext.info["resources"].is_array());
     }
 
@@ -166,15 +161,15 @@ mod tests {
             .issued_at("2024-01-15T10:30:00.000Z")
             .build();
 
-        let chains = vec![SupportedChain::builder()
-            .chain_id("eip155:8453")
-            .chain_type("eip191")
-            .build()];
+        let chains = vec![
+            SupportedChain::builder()
+                .chain_id("eip155:8453")
+                .chain_type("eip191")
+                .build(),
+        ];
 
-        let ext = Extension::typed(info).with_extra(
-            "supportedChains",
-            serde_json::to_value(&chains).unwrap(),
-        );
+        let ext = Extension::typed(info)
+            .with_extra("supportedChains", serde_json::to_value(&chains).unwrap());
 
         let (key, transport_ext) = ext.into_pair();
         assert_eq!(key, "sign-in-with-x");

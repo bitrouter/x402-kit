@@ -374,9 +374,7 @@ mod tests {
         extensions.insert_typed(Extension::typed(
             BazaarInfo::builder()
                 .input(BazaarInput::Http(
-                    BazaarHttpInput::builder()
-                        .method(HttpMethod::GET)
-                        .build(),
+                    BazaarHttpInput::builder().method(HttpMethod::GET).build(),
                 ))
                 .build(),
         ));

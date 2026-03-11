@@ -118,10 +118,7 @@ impl<T: ExtensionInfo> Extension<T> {
             T::ID.to_string(),
             Extension {
                 info: serde_json::to_value(&self.info).unwrap_or_else(|e| {
-                    panic!(
-                        "Failed to serialize extension '{}' info: {e}",
-                        T::ID
-                    )
+                    panic!("Failed to serialize extension '{}' info: {e}", T::ID)
                 }),
                 schema: self.schema,
                 extra: self.extra,
@@ -243,10 +240,7 @@ mod tests {
 
     #[test]
     fn serialize_extension_without_extra() {
-        let ext = Extension::new(
-            json!({"domain": "example.com"}),
-            json!({"type": "object"}),
-        );
+        let ext = Extension::new(json!({"domain": "example.com"}), json!({"type": "object"}));
 
         let json = serde_json::to_value(&ext).unwrap();
         assert_eq!(json.get("info").unwrap(), &json!({"domain": "example.com"}));
@@ -257,14 +251,11 @@ mod tests {
 
     #[test]
     fn serialize_extension_with_extra() {
-        let ext = Extension::new(
-            json!({"domain": "example.com"}),
-            json!({"type": "object"}),
-        )
-        .with_extra(
-            "supportedChains",
-            json!([{"chainId": "eip155:8453", "type": "eip191"}]),
-        );
+        let ext = Extension::new(json!({"domain": "example.com"}), json!({"type": "object"}))
+            .with_extra(
+                "supportedChains",
+                json!([{"chainId": "eip155:8453", "type": "eip191"}]),
+            );
 
         let json = serde_json::to_value(&ext).unwrap();
         assert_eq!(json.get("info").unwrap(), &json!({"domain": "example.com"}));
@@ -305,11 +296,8 @@ mod tests {
 
     #[test]
     fn roundtrip_extension_with_extra() {
-        let ext = Extension::new(
-            json!({"domain": "example.com"}),
-            json!({"type": "object"}),
-        )
-        .with_extra("customField", json!("custom_value"));
+        let ext = Extension::new(json!({"domain": "example.com"}), json!({"type": "object"}))
+            .with_extra("customField", json!("custom_value"));
 
         let serialized = serde_json::to_value(&ext).unwrap();
         let deserialized: Extension = serde_json::from_value(serialized.clone()).unwrap();
@@ -338,10 +326,7 @@ mod tests {
 
         let (key, transport_ext) = ext.into_pair();
         assert_eq!(key, "test-ext");
-        assert_eq!(
-            transport_ext.info,
-            json!({"value": "hello"})
-        );
+        assert_eq!(transport_ext.info, json!({"value": "hello"}));
         assert_eq!(
             transport_ext.schema,
             json!({"type": "object", "properties": {"value": {"type": "string"}}})
