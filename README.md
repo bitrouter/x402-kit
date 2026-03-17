@@ -13,6 +13,7 @@ A fully modular, framework-agnostic, easy-to-extend SDK for building complex X40
 | Crate                                                   | Description                                                                |
 | ------------------------------------------------------- | -------------------------------------------------------------------------- |
 | [`x402-kit`](https://crates.io/crates/x402-kit)         | Main SDK with network definitions, payment schemes, and facilitator client |
+| [`x402-signer`](https://crates.io/crates/x402-signer)   | Buyer-side signing SDK with reqwest middleware for automatic x402 payments |
 | [`x402-core`](https://crates.io/crates/x402-core)       | Core traits, types, and transport mechanisms for the X402 protocol         |
 | [`x402-paywall`](https://crates.io/crates/x402-paywall) | Framework-agnostic HTTP paywall middleware                                 |
 
@@ -194,11 +195,65 @@ let facilitator = FacilitatorClient::from_url(facilitator_url)
     .with_settle_response_type::<CustomSettleResponse>();
 ```
 
+### Buyer-Side Signing with `x402-signer`
+
+The `x402-signer` crate provides a reqwest middleware that automatically handles the x402 payment flow: intercept HTTP 402 → sign payment → retry with payment header.
+
+#### EVM Client
+
+```bash
+EVM_PRIVATE_KEY=0x... RESOURCE_URL=http://localhost:3000/resource/standard \
+  cargo run -p x402-signer --example evm_client
+```
+
+```rust
+use alloy::signers::local::PrivateKeySigner;
+use reqwest_middleware::ClientBuilder;
+use x402_signer::{X402Client, evm::EvmPaymentSigner, middleware::X402PaymentMiddleware};
+
+let wallet: PrivateKeySigner = "0x...".parse().unwrap();
+let signer = EvmPaymentSigner::new(wallet);
+let middleware = X402PaymentMiddleware::new(X402Client::new(signer));
+
+let client = ClientBuilder::new(reqwest::Client::new())
+    .with(middleware)
+    .build();
+
+// Any 402 response is automatically signed and retried
+let response = client.post("http://localhost:3000/resource/standard").send().await?;
+```
+
+#### SVM Client
+
+```bash
+SOLANA_PRIVATE_KEY=<base58> SOLANA_RPC_URL=https://api.devnet.solana.com \
+  RESOURCE_URL=http://localhost:3000/resource/multi_payments \
+  cargo run -p x402-signer --example svm_client
+```
+
+```rust
+use solana_keypair::Keypair;
+use solana_rpc_client::nonblocking::rpc_client::RpcClient;
+use reqwest_middleware::ClientBuilder;
+use x402_signer::{X402Client, svm::SvmPaymentSigner, middleware::X402PaymentMiddleware};
+
+let keypair = Keypair::from_base58_string("<base58-private-key>");
+let rpc = RpcClient::new("https://api.devnet.solana.com".to_string());
+let signer = SvmPaymentSigner::new(keypair, rpc);
+let middleware = X402PaymentMiddleware::new(X402Client::new(signer));
+
+let client = ClientBuilder::new(reqwest::Client::new())
+    .with(middleware)
+    .build();
+
+let response = client.post("http://localhost:3000/resource/multi_payments").send().await?;
+```
+
 ## 🚀 Next Steps
 
-- Full buyer-side signer support
 - More networks / assets / schemes
 - MCP / A2A transport support
+- Facilitator components support
 
 ## 🤝 Contributing
 
