@@ -1,6 +1,6 @@
 [package]
 name = "x402-signer"
-version = "2.3.0"
+version.workspace = true
 edition = "2024"
 repository = "https://github.com/AIMOverse/x402-kit"
 authors = ["Archer <archer@aimo.network>"]
@@ -46,8 +46,8 @@ reqwest = [
 
 [dependencies]
 # === Core ===
-x402-core = { version = "2.3.0", path = "../x402-core" }
-x402-networks = { version = "2.3.0", path = "../x402-networks", default-features = false }
+x402-core = { version = "2.4.0", path = "../x402-core" }
+x402-networks = { version = "2.4.0", path = "../x402-networks", default-features = false }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0", features = ["preserve_order"] }
 thiserror = { version = "2.0" }
