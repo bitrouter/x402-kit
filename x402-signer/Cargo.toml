@@ -8,7 +8,7 @@ license = "MIT"
 description = "Buyer-side signing SDK for the x402 payment protocol."
 
 [features]
-default = ["evm", "svm"]
+default = ["evm", "svm", "solana-rpc"]
 evm = [
     "x402-networks/evm",
     "dep:alloy-core",
@@ -30,6 +30,12 @@ svm = [
     "dep:base64",
     "dep:rand",
     "dep:hex",
+]
+solana-rpc = [
+    "svm",
+    "dep:solana-rpc-client",
+    "dep:solana-rpc-client-api",
+    "dep:solana-account",
 ]
 
 [dependencies]
@@ -58,6 +64,11 @@ solana-signature = { version = "3", optional = true }
 bincode = { version = "2.0", features = ["serde"], optional = true }
 base64 = { version = "0.22", optional = true }
 hex = { version = "0.4", optional = true }
+
+# === Feature "solana-rpc" ===
+solana-rpc-client = { version = "3", optional = true }
+solana-rpc-client-api = { version = "3", optional = true }
+solana-account = { version = "3", optional = true }
 
 [dev-dependencies]
 alloy = { version = "1" }
