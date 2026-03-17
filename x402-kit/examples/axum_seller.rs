@@ -1,4 +1,4 @@
-use alloy::primitives::address;
+use alloy_primitives::address;
 use axum::{
     Extension, Json, Router,
     extract::{Request, State},
