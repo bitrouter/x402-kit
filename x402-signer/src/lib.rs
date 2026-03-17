@@ -9,6 +9,9 @@ pub mod evm;
 #[cfg(feature = "svm")]
 pub mod svm;
 
+#[cfg(feature = "reqwest")]
+pub mod middleware;
+
 pub use client::X402Client;
 pub use errors::SigningError;
 pub use selector::select_requirements;
