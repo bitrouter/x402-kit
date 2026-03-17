@@ -8,7 +8,13 @@ license = "MIT"
 description = "(V2 Supported) A fully modular SDK for building complex X402 payment integrations."
 
 [features]
-default = ["facilitator-client", "evm-signer", "svm-signer", "axum", "actix-web"]
+default = [
+    "facilitator-client",
+    "evm-signer",
+    "svm-signer",
+    "axum",
+    "actix-web",
+]
 facilitator-client = ["dep:http", "dep:reqwest-middleware"]
 evm-signer = ["dep:alloy-core", "dep:alloy-signer", "dep:rand"]
 svm-signer = ["dep:bincode"]
@@ -19,6 +25,7 @@ actix-web = ["paywall", "x402-paywall/actix-web"]
 [dependencies]
 # === Core Deps ===
 x402-core = { version = "2.3.0", path = "../x402-core" }
+x402-networks = { version = "2.3.0", path = "../x402-networks" }
 x402-extensions = { version = "0.2.0", path = "../x402-extensions" }
 hex = { version = "0.4" }
 alloy-primitives = { version = "1.4" }

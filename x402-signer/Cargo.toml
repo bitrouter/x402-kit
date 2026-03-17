@@ -1,0 +1,66 @@
+[package]
+name = "x402-signer"
+version = "2.3.0"
+edition = "2024"
+repository = "https://github.com/AIMOverse/x402-kit"
+authors = ["Archer <archer@aimo.network>"]
+license = "MIT"
+description = "Buyer-side signing SDK for the x402 payment protocol."
+
+[features]
+default = ["evm", "svm"]
+evm = [
+    "x402-networks/evm",
+    "dep:alloy-core",
+    "dep:alloy-signer",
+    "dep:alloy-primitives",
+    "dep:rand",
+]
+svm = [
+    "x402-networks/svm",
+    "dep:solana-keypair",
+    "dep:solana-pubkey",
+    "dep:solana-instruction",
+    "dep:solana-transaction",
+    "dep:solana-message",
+    "dep:solana-hash",
+    "dep:solana-signer",
+    "dep:solana-signature",
+    "dep:bincode",
+    "dep:base64",
+    "dep:rand",
+    "dep:hex",
+]
+
+[dependencies]
+# === Core ===
+x402-core = { version = "2.3.0", path = "../x402-core" }
+x402-networks = { version = "2.3.0", path = "../x402-networks", default-features = false }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0", features = ["preserve_order"] }
+thiserror = { version = "2.0" }
+
+# === Feature "evm" ===
+alloy-core = { version = "1.4", features = ["sol-types"], optional = true }
+alloy-signer = { version = "1.1", optional = true }
+alloy-primitives = { version = "1.4", optional = true }
+rand = { version = "0.9", optional = true }
+
+# === Feature "svm" ===
+solana-pubkey = { version = "4", features = ["curve25519"], optional = true }
+solana-keypair = { version = "3", optional = true }
+solana-instruction = { version = "3", optional = true }
+solana-transaction = { version = "3", features = ["bincode"], optional = true }
+solana-message = { version = "3", optional = true }
+solana-hash = { version = "3", optional = true }
+solana-signer = { version = "3", optional = true }
+solana-signature = { version = "3", optional = true }
+bincode = { version = "2.0", features = ["serde"], optional = true }
+base64 = { version = "0.22", optional = true }
+hex = { version = "0.4", optional = true }
+
+[dev-dependencies]
+alloy = { version = "1" }
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+solana-pubkey = { version = "4" }
+solana-keypair = { version = "3" }
