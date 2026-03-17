@@ -199,6 +199,8 @@ let facilitator = FacilitatorClient::from_url(facilitator_url)
 
 The `x402-signer` crate provides a reqwest middleware that automatically handles the x402 payment flow: intercept HTTP 402 → sign payment → retry with payment header.
 
+You need some testnet USDC on Solana devnet or Base Sepolia to run signer examples. You can get some at [Circle testnet faucet](https://faucet.circle.com/)
+
 #### EVM Client
 
 ```bash
