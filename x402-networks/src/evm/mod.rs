@@ -257,10 +257,17 @@ pub mod assets {
         "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
     );
 
-    define_explicit_usdc!(
+    define_explicit_evm_asset!(
         UsdcEthereumSepolia,
         networks::EthereumSepolia,
-        "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238"
+        "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+        6,
+        "USDC",
+        "USDC",
+        Some(Eip712Domain {
+            name: "USDC",
+            version: "2",
+        })
     );
 
     define_explicit_usdc!(
@@ -269,9 +276,16 @@ pub mod assets {
         "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
     );
 
-    define_explicit_usdc!(
+    define_explicit_evm_asset!(
         UsdcBaseSepolia,
         networks::BaseSepolia,
-        "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
+        "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+        6,
+        "USDC",
+        "USDC",
+        Some(Eip712Domain {
+            name: "USDC",
+            version: "2",
+        })
     );
 }

@@ -10,7 +10,7 @@ use x402_networks::evm::exact::{ExactEvmAuthorization, ExactEvmPayload, Nonce, T
 use super::wallet::EvmWalletSigner;
 
 sol! {
-    struct Eip3009Authorization {
+    struct TransferWithAuthorization {
         address from;
         address to;
         uint256 value;
@@ -20,9 +20,9 @@ sol! {
     }
 }
 
-impl From<&ExactEvmAuthorization> for Eip3009Authorization {
+impl From<&ExactEvmAuthorization> for TransferWithAuthorization {
     fn from(auth: &ExactEvmAuthorization) -> Self {
-        Eip3009Authorization {
+        TransferWithAuthorization {
             from: auth.from.0,
             to: auth.to.0,
             value: U256::from(auth.value.0),
@@ -71,7 +71,7 @@ pub async fn sign_eip3009<S: EvmWalletSigner>(
         verifying_contract: params.asset_address,
     );
 
-    let sol_auth = Eip3009Authorization::from(&authorization);
+    let sol_auth = TransferWithAuthorization::from(&authorization);
     let hash = sol_auth.eip712_signing_hash(&domain);
     let signature = signer.sign_hash(&hash).await?;
 
