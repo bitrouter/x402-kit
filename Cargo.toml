@@ -1,3 +1,3 @@
 [workspace]
 resolver = "3"
-members = ["x402-core", "x402-extensions", "x402-kit", "x402-paywall"]
+members = ["x402-client","x402-core", "x402-extensions", "x402-kit", "x402-networks", "x402-paywall", "x402-signer"]
