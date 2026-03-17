@@ -37,8 +37,11 @@ pub struct TransactionParams {
 /// The transaction is unsigned. Caller must partially sign with the buyer's key.
 pub fn build_exact_svm_transaction(params: &TransactionParams) -> Transaction {
     let source_ata = derive_ata(&params.payer, &params.mint, &params.token_program);
-    let destination_ata =
-        derive_ata(&params.destination_owner, &params.mint, &params.token_program);
+    let destination_ata = derive_ata(
+        &params.destination_owner,
+        &params.mint,
+        &params.token_program,
+    );
 
     let instructions = vec![
         build_set_compute_unit_limit(DEFAULT_COMPUTE_UNIT_LIMIT),
@@ -55,8 +58,11 @@ pub fn build_exact_svm_transaction(params: &TransactionParams) -> Transaction {
         build_memo_instruction(),
     ];
 
-    let message =
-        Message::new_with_blockhash(&instructions, Some(&params.fee_payer), &params.recent_blockhash);
+    let message = Message::new_with_blockhash(
+        &instructions,
+        Some(&params.fee_payer),
+        &params.recent_blockhash,
+    );
 
     Transaction::new_unsigned(message)
 }
@@ -64,11 +70,7 @@ pub fn build_exact_svm_transaction(params: &TransactionParams) -> Transaction {
 /// Derive the Associated Token Account address.
 pub fn derive_ata(owner: &Pubkey, mint: &Pubkey, token_program: &Pubkey) -> Pubkey {
     let (ata, _bump) = Pubkey::find_program_address(
-        &[
-            owner.as_ref(),
-            token_program.as_ref(),
-            mint.as_ref(),
-        ],
+        &[owner.as_ref(), token_program.as_ref(), mint.as_ref()],
         &ASSOCIATED_TOKEN_PROGRAM,
     );
     ata

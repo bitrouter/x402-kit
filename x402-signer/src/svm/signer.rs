@@ -137,11 +137,9 @@ where
             .map_err(|e| SvmSigningError::Serialization(e.to_string()))?;
         let transaction_b64 = BASE64_STANDARD.encode(&tx_bytes);
 
-        let payload_json = serde_json::to_value(
-            x402_networks::svm::exact::ExplicitSvmPayload {
-                transaction: transaction_b64,
-            },
-        )
+        let payload_json = serde_json::to_value(x402_networks::svm::exact::ExplicitSvmPayload {
+            transaction: transaction_b64,
+        })
         .map_err(|e| SvmSigningError::Serialization(e.to_string()))?;
 
         Ok(PaymentPayload {

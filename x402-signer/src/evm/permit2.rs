@@ -1,15 +1,11 @@
-use alloy_core::{
-    sol_types::{SolStruct, eip712_domain},
-};
+use alloy_core::sol_types::{SolStruct, eip712_domain};
 use alloy_primitives::{Address, U256};
 
 use x402_core::types::AmountValue;
 use x402_networks::evm::EvmAddress;
 
 use super::constants::{PERMIT2_ADDRESS, X402_EXACT_PERMIT2_PROXY};
-use super::types::{
-    Permit2Authorization, Permit2Payload, Permit2Witness,
-};
+use super::types::{Permit2Authorization, Permit2Payload, Permit2Witness};
 use super::wallet::EvmWalletSigner;
 
 mod sol_types {

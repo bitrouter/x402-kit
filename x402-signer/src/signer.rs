@@ -41,9 +41,13 @@ where
         extensions: &Record<Extension>,
     ) -> Result<PaymentPayload, Self::Error> {
         if self.0.matches(requirements) {
-            self.0.sign_payment(requirements, resource, extensions).await
+            self.0
+                .sign_payment(requirements, resource, extensions)
+                .await
         } else {
-            self.1.sign_payment(requirements, resource, extensions).await
+            self.1
+                .sign_payment(requirements, resource, extensions)
+                .await
         }
     }
 }
