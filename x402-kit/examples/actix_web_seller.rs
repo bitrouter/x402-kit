@@ -5,7 +5,7 @@ use actix_web::{
     middleware::{self, Next},
     web,
 };
-use alloy::primitives::address;
+use alloy_primitives::address;
 use serde_json::json;
 use solana_pubkey::pubkey;
 use url::Url;

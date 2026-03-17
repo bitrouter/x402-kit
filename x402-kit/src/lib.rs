@@ -1,8 +1,9 @@
 //! # X402 Kit
 //!
-//! X402 Kit is a fully modular, framework-agnostic, easy-to-extend SDK for building complex X402 payment integrations.
+//! X402 Kit is a fully modular, framework-agnostic, easy-to-extend SDK for building seller-side X402 payment integrations.
 //!
-//! X402-kit is **not a facilitator** — it's a composable SDK for buyers (signers) and sellers (servers) to build custom business logic.
+//! X402-kit is **not a facilitator** — it's a composable SDK for sellers (servers) to build custom payment-gated business logic.
+//! For buyer-side signing, use the [`x402-signer`](https://docs.rs/x402-signer) crate.
 //! Future support for modular facilitator components is planned.
 //!
 //! ## Related Crates
@@ -11,11 +12,12 @@
 //!   for the X402 protocol. This crate provides the foundational building blocks that `x402-kit` builds upon.
 //! - **[`x402_paywall`]**: A framework-agnostic HTTP paywall middleware
 //!   built on top of `x402-kit`. Use it to protect HTTP resources with X402 payments.
+//! - **[`x402-signer`](https://docs.rs/x402-signer)**: Buyer-side signing SDK for the x402 payment protocol.
 //!
 //! ## Quick Start
 //!
 //! ```
-//! use alloy::primitives::address;
+//! use alloy_primitives::address;
 //! use axum::{
 //!     extract::{Request, State},
 //!     middleware::{from_fn_with_state, Next},
@@ -74,7 +76,7 @@
 //! You can accept payments from multiple networks (e.g., EVM and SVM) using [`transport::Accepts`]:
 //!
 //! ```
-//! use alloy::primitives::address;
+//! use alloy_primitives::address;
 //! use solana_pubkey::pubkey;
 //! use x402_kit::{
 //!     networks::{evm::assets::UsdcBaseSepolia, svm::assets::UsdcSolanaDevnet},

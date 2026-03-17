@@ -8,16 +8,15 @@ license = "MIT"
 description = "(V2 Supported) A fully modular SDK for building complex X402 payment integrations."
 
 [features]
-default = [
-    "facilitator-client",
-    "evm-signer",
-    "svm-signer",
-    "axum",
-    "actix-web",
-]
+default = ["facilitator-client", "evm", "svm", "axum", "actix-web"]
 facilitator-client = ["dep:http", "dep:reqwest-middleware"]
-evm-signer = ["dep:alloy-core", "dep:alloy-signer", "dep:rand"]
-svm-signer = ["dep:bincode"]
+evm = ["x402-networks/evm", "dep:alloy-primitives"]
+svm = [
+    "x402-networks/svm",
+    "dep:solana-pubkey",
+    "dep:solana-signature",
+    "dep:hex",
+]
 paywall = ["dep:x402-paywall"]
 axum = ["paywall", "x402-paywall/axum"]
 actix-web = ["paywall", "x402-paywall/actix-web"]
@@ -25,37 +24,31 @@ actix-web = ["paywall", "x402-paywall/actix-web"]
 [dependencies]
 # === Core Deps ===
 x402-core = { version = "2.3.0", path = "../x402-core" }
-x402-networks = { version = "2.3.0", path = "../x402-networks" }
+x402-networks = { version = "2.3.0", path = "../x402-networks", default-features = false }
 x402-extensions = { version = "0.2.0", path = "../x402-extensions" }
-hex = { version = "0.4" }
-alloy-primitives = { version = "1.4" }
 bon = { version = "3.8" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0", features = ["preserve_order"] }
 thiserror = { version = "2.0" }
 url = { version = "2.5" }
-solana-pubkey = { version = "4.0" }
-solana-signature = { version = "3.1" }
+
+# === Feature "evm" ===
+alloy-primitives = { version = "1.4", optional = true }
+
+# === Feature "svm" ===
+solana-pubkey = { version = "4.0", optional = true }
+solana-signature = { version = "3.1", optional = true }
+hex = { version = "0.4", optional = true }
 
 # === Feature "facilitator-client" ===
 reqwest-middleware = { version = "0.4.2", optional = true, features = ["json"] }
-
-# === Feature "evm-signer" ===
-alloy-core = { version = "1.4", features = ["sol-types"], optional = true }
-alloy-signer = { version = "1.1", optional = true }
-rand = { version = "0.9", optional = true }
-
-# === Feature "svm-signer" ===
-bincode = { version = "2.0", features = ["serde"], optional = true }
-
-# === Feature "facilitator-client" ===
 http = { version = "1.4", optional = true }
 
 # === Feature "paywall" ===
 x402-paywall = { version = "2.3.0", path = "../x402-paywall", optional = true, default-features = false }
 
 [dev-dependencies]
-alloy = { version = "1" }
+alloy-primitives = { version = "1.4" }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 url = { version = "2.5" }
 url-macro = { version = "0.2" }
