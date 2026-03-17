@@ -26,12 +26,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # adjust to your feature list
         features:
           - "" # no extra features
           - "facilitator-client"
-          - "evm-signer"
-          - "svm-signer"
+          - "evm"
+          - "svm"
           - "paywall"
           - "axum"
           - "actix-web"
@@ -52,11 +51,37 @@ jobs:
             cargo build -p x402-kit --release --no-default-features --features "${{ matrix.features }}"
           fi
 
+  build-x402-signer:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        features:
+          - "" # no extra features
+          - "evm"
+          - "svm"
+          - "solana-rpc"
+          - "reqwest"
+          - "all" # marker for all features
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - name: Build with features = ${{ matrix.features }}
+        run: |
+          if [ "${{ matrix.features }}" = "all" ]; then
+            cargo build -p x402-signer --release --all-features
+          elif [ "${{ matrix.features }}" = "" ]; then
+            cargo build -p x402-signer --release --no-default-features
+          else
+            cargo build -p x402-signer --release --no-default-features --features "${{ matrix.features }}"
+          fi
+
   build-x402-paywall:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # adjust to your feature list
         features:
           - "" # no extra features
           - "tracing"
@@ -148,7 +173,7 @@ jobs:
           RUSTDOCFLAGS: -D warnings
 
   test-docs:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
