@@ -19,14 +19,14 @@ pub trait PaymentSigner {
         requirements: &PaymentRequirements,
         resource: &PaymentResource,
         extensions: &Record<Extension>,
-    ) -> impl Future<Output = Result<PaymentPayload, Self::Error>>;
+    ) -> impl Future<Output = Result<PaymentPayload, Self::Error>> + Send;
 }
 
 /// Tuple composition: tries `A` first, falls back to `B`.
 impl<A, B> PaymentSigner for (A, B)
 where
-    A: PaymentSigner,
-    B: PaymentSigner<Error = A::Error>,
+    A: PaymentSigner + Sync,
+    B: PaymentSigner<Error = A::Error> + Sync,
 {
     type Error = A::Error;
 
