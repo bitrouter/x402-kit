@@ -7095,7 +7095,7 @@ dependencies = [
 
 [[package]]
 name = "x402-core"
-version = "2.4.0"
+version = "2.4.1"
 dependencies = [
  "base64",
  "bon",
@@ -7107,7 +7107,7 @@ dependencies = [
 
 [[package]]
 name = "x402-extensions"
-version = "2.4.0"
+version = "2.4.1"
 dependencies = [
  "bon",
  "schemars 1.2.1",
@@ -7118,7 +7118,7 @@ dependencies = [
 
 [[package]]
 name = "x402-kit"
-version = "2.4.0"
+version = "2.4.1"
 dependencies = [
  "actix-web",
  "alloy-primitives",
@@ -7147,7 +7147,7 @@ dependencies = [
 
 [[package]]
 name = "x402-networks"
-version = "2.4.0"
+version = "2.4.1"
 dependencies = [
  "alloy-primitives",
  "bon",
@@ -7161,7 +7161,7 @@ dependencies = [
 
 [[package]]
 name = "x402-paywall"
-version = "2.4.0"
+version = "2.4.1"
 dependencies = [
  "actix-web",
  "axum",
@@ -7174,7 +7174,7 @@ dependencies = [
 
 [[package]]
 name = "x402-signer"
-version = "2.4.0"
+version = "2.4.1"
 dependencies = [
  "alloy",
  "alloy-core",
