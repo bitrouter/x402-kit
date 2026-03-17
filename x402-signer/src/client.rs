@@ -1,10 +1,6 @@
 use x402_core::transport::{PaymentPayload, PaymentRequired};
 
-use crate::{
-    errors::SigningError,
-    selector::select_requirements,
-    signer::PaymentSigner,
-};
+use crate::{errors::SigningError, selector::select_requirements, signer::PaymentSigner};
 
 /// High-level signing client that wraps a `PaymentSigner` and handles requirement selection.
 pub struct X402Client<P> {

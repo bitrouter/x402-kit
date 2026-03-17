@@ -86,7 +86,11 @@ mod evm_tests {
         let extensions = Record::default();
 
         let result = evm.sign_payment(&req, &resource, &extensions).await;
-        assert!(result.is_ok(), "EIP-3009 signing failed: {:?}", result.err());
+        assert!(
+            result.is_ok(),
+            "EIP-3009 signing failed: {:?}",
+            result.err()
+        );
 
         let payload = result.unwrap();
         assert_eq!(payload.x402_version, X402V2);
@@ -157,17 +161,18 @@ mod svm_tests {
     use super::*;
     use solana_pubkey::Pubkey;
     use std::str::FromStr;
-    use x402_signer::svm::{
-        SvmPaymentSigner, SvmRpc,
-    };
-    use x402_signer::svm::transaction::{TransactionParams, build_exact_svm_transaction, derive_ata};
     use x402_networks::svm::SvmAddress;
+    use x402_signer::svm::transaction::{
+        TransactionParams, build_exact_svm_transaction, derive_ata,
+    };
+    use x402_signer::svm::{SvmPaymentSigner, SvmRpc};
 
     #[test]
     fn derive_ata_deterministic() {
         let owner = Pubkey::from_str("GVmFbJa2MWLBkk2s9Y4M5hFTdQ41QRNfzZWMg2F3udz").unwrap();
         let mint = Pubkey::from_str("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v").unwrap();
-        let token_program = Pubkey::from_str("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA").unwrap();
+        let token_program =
+            Pubkey::from_str("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA").unwrap();
 
         let ata1 = derive_ata(&owner, &mint, &token_program);
         let ata2 = derive_ata(&owner, &mint, &token_program);
@@ -183,7 +188,8 @@ mod svm_tests {
         let payer = Pubkey::new_unique();
         let mint = Pubkey::from_str("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v").unwrap();
         let destination_owner = Pubkey::new_unique();
-        let token_program = Pubkey::from_str("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA").unwrap();
+        let token_program =
+            Pubkey::from_str("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA").unwrap();
         let recent_blockhash = solana_hash::Hash::new_unique();
 
         let tx = build_exact_svm_transaction(&TransactionParams {
@@ -201,7 +207,10 @@ mod svm_tests {
         // Fee payer should be first account key
         assert_eq!(tx.message.account_keys[0], fee_payer);
         // Signatures should be pre-allocated
-        assert!(tx.signatures.len() >= 2, "expected at least 2 signature slots");
+        assert!(
+            tx.signatures.len() >= 2,
+            "expected at least 2 signature slots"
+        );
     }
 
     #[test]
@@ -210,7 +219,8 @@ mod svm_tests {
         let payer = Pubkey::new_unique();
         let mint = Pubkey::from_str("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v").unwrap();
         let destination_owner = Pubkey::new_unique();
-        let token_program = Pubkey::from_str("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA").unwrap();
+        let token_program =
+            Pubkey::from_str("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA").unwrap();
 
         let tx = build_exact_svm_transaction(&TransactionParams {
             fee_payer,
@@ -240,7 +250,11 @@ mod svm_tests {
 
         // Instruction 3: Memo — random hex nonce
         let ix3_data = &tx.message.instructions[3].data;
-        assert_eq!(ix3_data.len(), 32, "memo should be 32 hex chars (16 bytes → hex)");
+        assert_eq!(
+            ix3_data.len(),
+            32,
+            "memo should be 32 hex chars (16 bytes → hex)"
+        );
     }
 
     // Mock RPC for testing

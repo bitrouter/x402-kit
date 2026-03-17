@@ -1,7 +1,7 @@
-pub mod errors;
-pub mod signer;
-pub mod selector;
 pub mod client;
+pub mod errors;
+pub mod selector;
+pub mod signer;
 
 #[cfg(feature = "evm")]
 pub mod evm;

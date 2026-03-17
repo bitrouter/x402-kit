@@ -5,9 +5,7 @@ use alloy_core::{
 use alloy_primitives::{Address, FixedBytes, U256};
 
 use x402_networks::evm::EvmAddress;
-use x402_networks::evm::exact::{
-    ExactEvmAuthorization, ExactEvmPayload, Nonce, TimestampSeconds,
-};
+use x402_networks::evm::exact::{ExactEvmAuthorization, ExactEvmPayload, Nonce, TimestampSeconds};
 
 use super::wallet::EvmWalletSigner;
 
