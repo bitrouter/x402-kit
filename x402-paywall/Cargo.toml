@@ -14,7 +14,7 @@ axum = ["dep:axum"]
 actix-web = ["dep:actix-web"]
 
 [dependencies]
-x402-core = { version = "2.4.1", path = "../x402-core" }
+x402-core = { version = "2.5.0", path = "../x402-core" }
 http = { version = "1.4" }
 bon = { version = "3.8" }
 tracing = { version = "0.1", optional = true }

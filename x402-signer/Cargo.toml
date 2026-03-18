@@ -47,8 +47,8 @@ swig = ["svm", "dep:bitrouter-swig-sdk"]
 
 [dependencies]
 # === Core ===
-x402-core = { version = "2.4.1", path = "../x402-core" }
-x402-networks = { version = "2.4.1", path = "../x402-networks", default-features = false }
+x402-core = { version = "2.5.0", path = "../x402-core" }
+x402-networks = { version = "2.5.0", path = "../x402-networks", default-features = false }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0", features = ["preserve_order"] }
 thiserror = { version = "2.0" }
