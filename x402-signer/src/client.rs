@@ -29,10 +29,7 @@ impl<P: PaymentSigner> X402Client<P> {
                 &payment_required.extensions,
             )
             .await
-            .map_err(|_| SigningError::SchemeNotSupported {
-                scheme: requirements.scheme.clone(),
-                network: requirements.network.clone(),
-            })
+            .map_err(|e| SigningError::Signer(e.to_string()))
     }
 
     /// Access the inner signer.

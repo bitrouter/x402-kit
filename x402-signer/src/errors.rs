@@ -15,6 +15,9 @@ pub enum SigningError {
     #[error("unsupported scheme '{scheme}' on network '{network}'")]
     SchemeNotSupported { scheme: String, network: String },
 
+    #[error("signer error: {0}")]
+    Signer(String),
+
     #[cfg(feature = "evm")]
     #[error("EVM signing error: {0}")]
     Evm(#[from] crate::evm::EvmSigningError),

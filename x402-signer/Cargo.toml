@@ -88,9 +88,24 @@ async-trait = { version = "0.1", optional = true }
 
 [dev-dependencies]
 alloy = { version = "1" }
-tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
-solana-pubkey = { version = "4" }
-solana-keypair = { version = "3" }
+bitrouter-swig-sdk = { version = "0.2", path = "../../swig-sdk" }
+rand = { version = "0.9" }
 reqwest = { version = "0.13" }
 reqwest-middleware = { version = "0.5" }
+solana-client = { version = "3" }
+solana-instruction = { version = "3" }
+solana-keypair = { version = "3" }
+solana-pubkey = { version = "4" }
 solana-rpc-client = { version = "3" }
+solana-transaction = { version = "3" }
+spl-associated-token-account = { version = "8" }
+spl-token = { version = "9" }
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+
+[[example]]
+name = "svm_swig_embedded"
+required-features = ["swig", "reqwest"]
+
+[[example]]
+name = "svm_swig_delegation"
+required-features = ["swig", "reqwest"]

@@ -5,10 +5,9 @@ use x402_core::transport::{PaymentPayload, PaymentRequirements, PaymentResource}
 use x402_core::types::{Extension, Record};
 
 use crate::signer::PaymentSigner;
-use crate::svm::rpc::SvmRpc;
 use crate::svm::wallet::SvmWalletSigner;
 
-use super::transaction::{SwigSigningError, sign_swig_payment};
+use super::transaction::{SwigAccount, SwigRpc, SwigSigningError, sign_swig_payment};
 
 /// Signing error type for [`SwigEmbeddedSigner`].
 pub type SwigEmbeddedSigningError = SwigSigningError;
@@ -27,7 +26,7 @@ pub struct SwigEmbeddedSigner<W, R> {
     rpc: R,
 }
 
-impl<W: SvmWalletSigner, R: SvmRpc> SwigEmbeddedSigner<W, R> {
+impl<W: SvmWalletSigner, R: SwigRpc> SwigEmbeddedSigner<W, R> {
     pub fn new(swig_account: Pubkey, wallet: W, role_id: u32, rpc: R) -> Self {
         let (swig_wallet_address, _bump) = pda::swig_wallet_address(&swig_account);
         Self {
@@ -43,7 +42,7 @@ impl<W: SvmWalletSigner, R: SvmRpc> SwigEmbeddedSigner<W, R> {
 impl<W, R> PaymentSigner for SwigEmbeddedSigner<W, R>
 where
     W: SvmWalletSigner + Sync,
-    R: SvmRpc + Sync,
+    R: SwigRpc + Sync,
 {
     type Error = SwigEmbeddedSigningError;
 
@@ -58,15 +57,18 @@ where
         extensions: &Record<Extension>,
     ) -> Result<PaymentPayload, Self::Error> {
         sign_swig_payment(
-            self.swig_account,
-            self.swig_wallet_address,
-            self.wallet.pubkey().0,
-            self.role_id,
+            &SwigAccount {
+                swig_account: self.swig_account,
+                swig_wallet_address: self.swig_wallet_address,
+                authority_pubkey: self.wallet.pubkey().0,
+                role_id: self.role_id,
+            },
             &self.wallet,
             &self.rpc,
             requirements,
             resource,
             extensions,
+            true, // owner self-approves each payment
         )
         .await
     }

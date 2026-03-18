@@ -59,3 +59,13 @@ impl SvmRpc for solana_rpc_client::nonblocking::rpc_client::RpcClient {
         })
     }
 }
+
+#[cfg(feature = "swig")]
+impl crate::swig::SwigRpc for solana_rpc_client::nonblocking::rpc_client::RpcClient {
+    async fn send_and_confirm_transaction(
+        &self,
+        transaction: &solana_transaction::Transaction,
+    ) -> Result<solana_signature::Signature, Self::Error> {
+        Ok(self.send_and_confirm_transaction(transaction).await?)
+    }
+}
