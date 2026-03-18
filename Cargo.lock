@@ -1474,6 +1474,8 @@ dependencies = [
 [[package]]
 name = "bitrouter-swig-sdk"
 version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e8278974d8de1963456332f20cf32cc659a624fc2a694b29b9904e174e2f0a9b"
 dependencies = [
  "bs58",
  "hex",
