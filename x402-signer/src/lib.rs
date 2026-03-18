@@ -9,6 +9,9 @@ pub mod evm;
 #[cfg(feature = "svm")]
 pub mod svm;
 
+#[cfg(feature = "swig")]
+pub mod swig;
+
 #[cfg(feature = "reqwest")]
 pub mod middleware;
 

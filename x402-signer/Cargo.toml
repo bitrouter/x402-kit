@@ -43,6 +43,7 @@ reqwest = [
     "dep:http",
     "dep:async-trait",
 ]
+swig = ["svm", "dep:bitrouter-swig-sdk"]
 
 [dependencies]
 # === Core ===
@@ -75,6 +76,9 @@ hex = { version = "0.4", optional = true }
 solana-rpc-client = { version = "3", optional = true }
 solana-rpc-client-api = { version = "3", optional = true }
 solana-account = { version = "3", optional = true }
+
+# === Feature "swig" ===
+bitrouter-swig-sdk = { version = "0.2", path = "../../swig-sdk", optional = true }
 
 # === Feature "reqwest" ===
 reqwest = { version = "0.13", default-features = false, optional = true }

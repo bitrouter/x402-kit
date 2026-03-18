@@ -77,7 +77,7 @@ pub fn derive_ata(owner: &Pubkey, mint: &Pubkey, token_program: &Pubkey) -> Pubk
 }
 
 /// ComputeBudget: SetComputeUnitLimit instruction.
-fn build_set_compute_unit_limit(units: u32) -> Instruction {
+pub(crate) fn build_set_compute_unit_limit(units: u32) -> Instruction {
     // Discriminator 2 + u32 LE
     let mut data = Vec::with_capacity(5);
     data.push(2u8);
@@ -91,7 +91,7 @@ fn build_set_compute_unit_limit(units: u32) -> Instruction {
 }
 
 /// ComputeBudget: SetComputeUnitPrice instruction.
-fn build_set_compute_unit_price(micro_lamports: u64) -> Instruction {
+pub(crate) fn build_set_compute_unit_price(micro_lamports: u64) -> Instruction {
     // Discriminator 3 + u64 LE
     let mut data = Vec::with_capacity(9);
     data.push(3u8);
@@ -105,7 +105,7 @@ fn build_set_compute_unit_price(micro_lamports: u64) -> Instruction {
 }
 
 /// SPL Token: TransferChecked instruction.
-fn build_transfer_checked(
+pub(crate) fn build_transfer_checked(
     source: &Pubkey,
     mint: &Pubkey,
     destination: &Pubkey,
@@ -133,7 +133,7 @@ fn build_transfer_checked(
 }
 
 /// Memo program instruction with a random hex nonce.
-fn build_memo_instruction() -> Instruction {
+pub(crate) fn build_memo_instruction() -> Instruction {
     let nonce: [u8; 16] = rand::random();
     let hex_str = hex::encode(nonce);
 
