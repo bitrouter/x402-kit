@@ -24,15 +24,59 @@ use crate::svm::wallet::SvmWalletSigner;
 
 /// Extended RPC operations needed for SWIG-based payment signing.
 ///
-/// SWIG payments require sending a pre-approval transaction on-chain before
-/// building the x402 payment. This trait extends [`SvmRpc`] with the ability
-/// to send and confirm transactions.
+/// SWIG payments in [`SwigSigningMode::Delegated`] mode require sending a
+/// pre-approval transaction on-chain before building the x402 payment. This
+/// trait extends [`SvmRpc`] with the ability to send and confirm transactions.
+///
+/// In [`SwigSigningMode::Native`] mode, no pre-approval is needed and this
+/// trait's method is never called — but the trait bound is still required for
+/// API uniformity.
 pub trait SwigRpc: SvmRpc {
     /// Send a transaction and wait for confirmation.
     fn send_and_confirm_transaction(
         &self,
         transaction: &Transaction,
     ) -> impl Future<Output = Result<solana_signature::Signature, Self::Error>> + Send;
+}
+
+/// Controls how SWIG payment transactions are constructed.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SwigSigningMode {
+    /// **2-transaction workaround**.
+    ///
+    /// 1. Send `SignV2(ApproveChecked)` on-chain to approve the authority as
+    ///    an SPL Token delegate on the SWIG wallet's ATA.
+    /// 2. Build a standard x402 transaction:
+    ///    `[ComputeLimit, ComputePrice, TransferChecked, Memo]`
+    ///    where the authority acts as the approved delegate.
+    ///
+    /// Compatible with any x402 facilitator that implements the `exact` SVM
+    /// scheme, but costs an extra on-chain transaction per payment.
+    ///
+    /// When `self_approve` is `true`, the signer sends the approval
+    /// transaction itself (suitable for owner roles with `Permission::All`).
+    /// When `false`, the owner must pre-approve the delegate at setup time.
+    Delegated {
+        /// Whether the signer should self-approve before each payment.
+        self_approve: bool,
+    },
+
+    /// **Single-transaction swig-native layout**.
+    ///
+    /// Builds a single x402 transaction with the transfer wrapped inside a
+    /// SWIG `SignV2` instruction:
+    /// `[ComputeLimit, ComputePrice, SignV2(TransferChecked), Memo]`
+    ///
+    /// Eliminates the pre-approval transaction, but requires a facilitator
+    /// that understands the SWIG instruction layout (e.g.
+    /// `bitrouter-node`'s `SwigFacilitator`).
+    Native,
+}
+
+impl Default for SwigSigningMode {
+    fn default() -> Self {
+        Self::Delegated { self_approve: true }
+    }
 }
 
 /// SWIG-specific signing errors.
@@ -107,7 +151,9 @@ fn build_approve_checked(
 
 /// Build a SWIG-authorized x402 payment.
 ///
-/// This function works in two phases:
+/// The behaviour depends on `mode`:
+///
+/// ## [`SwigSigningMode::Delegated`] (2-transaction workaround)
 ///
 /// 1. **Pre-approve** (when `self_approve` is `true`): sends a SWIG
 ///    `sign_v2(ApproveChecked)` transaction on-chain so the authority keypair
@@ -124,9 +170,53 @@ fn build_approve_checked(
 ///    - `[2]` TransferChecked (authority as approved delegate)
 ///    - `[3]` Memo (random nonce)
 ///
+/// ## [`SwigSigningMode::Native`] (single-transaction)
+///
+/// Builds a single x402 transaction with the transfer wrapped inside a
+/// SWIG `SignV2` instruction:
+/// - `[0]` SetComputeUnitLimit
+/// - `[1]` SetComputeUnitPrice
+/// - `[2]` SignV2(TransferChecked)
+/// - `[3]` Memo (random nonce)
+///
+/// No pre-approval is needed. Requires a swig-aware facilitator.
+///
 /// Shared by both [`SwigEmbeddedSigner`](super::SwigEmbeddedSigner) and
 /// [`SwigDelegationSigner`](super::SwigDelegationSigner).
 pub(super) async fn sign_swig_payment<W, R>(
+    swig: &SwigAccount,
+    wallet: &W,
+    rpc: &R,
+    requirements: &PaymentRequirements,
+    resource: &PaymentResource,
+    extensions: &Record<Extension>,
+    mode: SwigSigningMode,
+) -> Result<PaymentPayload, SwigSigningError>
+where
+    W: SvmWalletSigner + Sync,
+    R: SwigRpc + Sync,
+{
+    match mode {
+        SwigSigningMode::Delegated { self_approve } => {
+            sign_swig_payment_delegated(
+                swig,
+                wallet,
+                rpc,
+                requirements,
+                resource,
+                extensions,
+                self_approve,
+            )
+            .await
+        }
+        SwigSigningMode::Native => {
+            sign_swig_payment_native(swig, wallet, rpc, requirements, resource, extensions).await
+        }
+    }
+}
+
+/// Delegated mode: 2-transaction workaround (approve + standard x402 tx).
+async fn sign_swig_payment_delegated<W, R>(
     swig: &SwigAccount,
     wallet: &W,
     rpc: &R,
@@ -259,6 +349,132 @@ where
     tx.signatures[signer_index] = signature.0;
 
     // 7. Serialize to base64.
+    let tx_bytes = bincode::serde::encode_to_vec(&tx, bincode::config::legacy())
+        .map_err(|e| SwigSigningError::Serialization(e.to_string()))?;
+
+    let payload_json = serde_json::to_value(ExplicitSvmPayload {
+        transaction: BASE64_STANDARD.encode(&tx_bytes),
+    })
+    .map_err(|e| SwigSigningError::Serialization(e.to_string()))?;
+
+    Ok(PaymentPayload {
+        x402_version: X402V2,
+        resource: resource.clone(),
+        accepted: requirements.clone(),
+        payload: payload_json,
+        extensions: extensions.clone(),
+    })
+}
+
+/// Native mode: single transaction with SignV2-wrapped TransferChecked.
+///
+/// Transaction layout:
+/// - `[0]` SetComputeUnitLimit
+/// - `[1]` SetComputeUnitPrice
+/// - `[2]` SignV2(TransferChecked) — the transfer is inside the SWIG instruction
+/// - `[3]` Memo (random nonce)
+async fn sign_swig_payment_native<W, R>(
+    swig: &SwigAccount,
+    wallet: &W,
+    rpc: &R,
+    requirements: &PaymentRequirements,
+    resource: &PaymentResource,
+    extensions: &Record<Extension>,
+) -> Result<PaymentPayload, SwigSigningError>
+where
+    W: SvmWalletSigner + Sync,
+    R: SwigRpc + Sync,
+{
+    // 1. Parse requirements.
+    let extra: SvmExtra = requirements
+        .extra
+        .as_ref()
+        .and_then(|v| serde_json::from_value(v.clone()).ok())
+        .unwrap_or(SvmExtra { fee_payer: None });
+
+    let fee_payer = parse_pubkey(&extra.fee_payer.ok_or(SwigSigningError::MissingFeePayer)?)?;
+    let mint = parse_pubkey(&requirements.asset)?;
+    let destination_owner = parse_pubkey(&requirements.pay_to)?;
+    let amount = requirements.amount.0 as u64;
+
+    // 2. Fetch mint info.
+    let mint_info = rpc
+        .fetch_mint_info(SvmAddress(mint))
+        .await
+        .map_err(|e| SwigSigningError::Rpc(e.to_string()))?;
+
+    let token_program = mint_info.program_address.0;
+
+    // 3. Derive ATAs.
+    let source_ata = derive_ata(&swig.swig_wallet_address, &mint, &token_program);
+    let destination_ata = derive_ata(&destination_owner, &mint, &token_program);
+
+    // 4. Build the inner TransferChecked instruction.
+    let transfer_ix = build_transfer_checked(
+        &source_ata,
+        &mint,
+        &destination_ata,
+        &swig.swig_wallet_address, // swig wallet address is the token authority
+        amount,
+        mint_info.decimals,
+        &token_program,
+    );
+
+    // 5. Wrap it in a SWIG SignV2 instruction.
+    let client_role = Ed25519ClientRole::new(swig.authority_pubkey);
+    let swig_instructions = client_role
+        .sign_v2(
+            swig.swig_account,
+            swig.swig_wallet_address,
+            swig.role_id,
+            vec![transfer_ix],
+            None,
+            &[], // authority is already a signer in sign_v2
+        )
+        .map_err(|e| SwigSigningError::Swig(e.to_string()))?;
+
+    // sign_v2 may return multiple instructions (e.g. Ed25519 pre-verify);
+    // the SignV2 instruction itself is the last one.
+    if swig_instructions.is_empty() {
+        return Err(SwigSigningError::Swig(
+            "sign_v2 returned no instructions".into(),
+        ));
+    }
+
+    // 6. Assemble the full instruction list.
+    let mut instructions = Vec::with_capacity(swig_instructions.len() + 3);
+    instructions.push(build_set_compute_unit_limit(DEFAULT_COMPUTE_UNIT_LIMIT));
+    instructions.push(build_set_compute_unit_price(DEFAULT_COMPUTE_UNIT_PRICE));
+    instructions.extend(swig_instructions);
+    instructions.push(build_memo_instruction());
+
+    // 7. Build and partially sign the transaction.
+    let recent_blockhash = rpc
+        .get_latest_blockhash()
+        .await
+        .map_err(|e| SwigSigningError::Rpc(e.to_string()))?;
+
+    let message = Message::new_with_blockhash(&instructions, Some(&fee_payer), &recent_blockhash);
+    let mut tx = Transaction::new_unsigned(message);
+
+    let message_bytes = tx.message_data();
+    let signature = wallet
+        .sign_message(&message_bytes)
+        .await
+        .map_err(|e| SwigSigningError::Wallet(e.to_string()))?;
+
+    // Place signature at the authority's index; fee_payer slot stays empty.
+    let signer_index = tx
+        .message
+        .account_keys
+        .iter()
+        .position(|k| k == &swig.authority_pubkey)
+        .ok_or_else(|| {
+            SwigSigningError::Serialization("authority not found in account keys".into())
+        })?;
+    tx.signatures[signer_index] = signature.0;
+
+    // 8. Serialize to base64.
     let tx_bytes = bincode::serde::encode_to_vec(&tx, bincode::config::legacy())
         .map_err(|e| SwigSigningError::Serialization(e.to_string()))?;
 

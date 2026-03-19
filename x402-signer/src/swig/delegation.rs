@@ -7,7 +7,9 @@ use x402_core::types::{Extension, Record};
 use crate::signer::PaymentSigner;
 use crate::svm::wallet::SvmWalletSigner;
 
-use super::transaction::{SwigAccount, SwigRpc, SwigSigningError, sign_swig_payment};
+use super::transaction::{
+    SwigAccount, SwigRpc, SwigSigningError, SwigSigningMode, sign_swig_payment,
+};
 
 /// Signing error type for [`SwigDelegationSigner`].
 pub type SwigDelegationSigningError = SwigSigningError;
@@ -25,6 +27,7 @@ pub struct SwigDelegationSigner<W, R> {
     authority: W,
     role_id: u32,
     rpc: R,
+    mode: SwigSigningMode,
 }
 
 impl<W: SvmWalletSigner, R: SwigRpc> SwigDelegationSigner<W, R> {
@@ -36,7 +39,20 @@ impl<W: SvmWalletSigner, R: SwigRpc> SwigDelegationSigner<W, R> {
             authority,
             role_id,
             rpc,
+            mode: SwigSigningMode::Delegated {
+                self_approve: false,
+            },
         }
+    }
+
+    /// Set the signing mode.
+    ///
+    /// - [`SwigSigningMode::Delegated`] (default): 2-transaction workaround.
+    /// - [`SwigSigningMode::Native`]: single transaction with SignV2-wrapped
+    ///   TransferChecked. Requires a swig-aware facilitator.
+    pub fn with_mode(mut self, mode: SwigSigningMode) -> Self {
+        self.mode = mode;
+        self
     }
 }
 
@@ -69,7 +85,7 @@ where
             requirements,
             resource,
             extensions,
-            false, // delegate is pre-approved by the owner at setup time
+            self.mode,
         )
         .await
     }
